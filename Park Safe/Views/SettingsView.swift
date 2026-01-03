@@ -60,6 +60,7 @@ struct SettingsView: View {
                         Text("Get notified before your parking expires")
                     }
                     .listRowBackground(Theme.cardBackground)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     
                     // Location section
                     Section {
@@ -87,6 +88,7 @@ struct SettingsView: View {
                         Text("Location is used to remember where you parked")
                     }
                     .listRowBackground(Theme.cardBackground)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     
                     // Notification Permissions
                     Section {
@@ -113,37 +115,39 @@ struct SettingsView: View {
                         Text("Permissions")
                     }
                     .listRowBackground(Theme.cardBackground)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     
                     // Default duration section
                     Section {
-                        HStack {
-                            Label {
-                                Text("Default Duration")
-                            } icon: {
-                                Image(systemName: "clock.fill")
-                                    .foregroundColor(.orange)
-                            }
-                            Spacer()
-                            
+                        VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Picker("", selection: $viewModel.defaultDurationHours) {
+                                Label {
+                                    Text("Default Duration")
+                                } icon: {
+                                    Image(systemName: "clock.fill")
+                                        .foregroundColor(.orange)
+                                }
+                            }
+                            
+                            HStack(spacing: 12) {
+                                Picker("Hours", selection: $viewModel.defaultDurationHours) {
                                     ForEach(0..<24) { hour in
                                         Text("\(hour)h").tag(hour)
                                     }
                                 }
                                 .pickerStyle(.menu)
-                                .labelsHidden()
+                                .frame(maxWidth: .infinity)
                                 .onChange(of: viewModel.defaultDurationHours) { _, _ in
                                     viewModel.updateDefaultDuration()
                                 }
                                 
-                                Picker("", selection: $viewModel.defaultDurationMinutes) {
+                                Picker("Minutes", selection: $viewModel.defaultDurationMinutes) {
                                     ForEach(Array(stride(from: 0, to: 60, by: 5)), id: \.self) { minute in
                                         Text("\(minute)m").tag(minute)
                                     }
                                 }
                                 .pickerStyle(.menu)
-                                .labelsHidden()
+                                .frame(maxWidth: .infinity)
                                 .onChange(of: viewModel.defaultDurationMinutes) { _, _ in
                                     viewModel.updateDefaultDuration()
                                 }
@@ -153,6 +157,7 @@ struct SettingsView: View {
                         Text("Defaults")
                     }
                     .listRowBackground(Theme.cardBackground)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     
                     // About section
                     Section {
@@ -173,8 +178,11 @@ struct SettingsView: View {
                         Text("About")
                     }
                     .listRowBackground(Theme.cardBackground)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                 }
                 .scrollContentBackground(.hidden)
+                .formStyle(.grouped)
+                .environment(\.horizontalSizeClass, .compact)
             }
             .navigationTitle("Settings")
         }
@@ -182,24 +190,28 @@ struct SettingsView: View {
     
     private func statusBadge(for status: CLAuthorizationStatus) -> some View {
         Text(statusText(status))
-            .font(.caption)
-            .fontWeight(.bold)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .font(.caption2)
+            .fontWeight(.semibold)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
             .background(statusColor(status).opacity(0.15))
             .foregroundColor(statusColor(status))
-            .cornerRadius(6)
+            .cornerRadius(5)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
     }
     
     private func statusBadge(for status: UNAuthorizationStatus) -> some View {
         Text(notificationStatusText(status))
-            .font(.caption)
-            .fontWeight(.bold)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .font(.caption2)
+            .fontWeight(.semibold)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
             .background(notificationStatusColor(status).opacity(0.15))
             .foregroundColor(notificationStatusColor(status))
-            .cornerRadius(6)
+            .cornerRadius(5)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
     }
     
     private func statusText(_ status: CLAuthorizationStatus) -> String {

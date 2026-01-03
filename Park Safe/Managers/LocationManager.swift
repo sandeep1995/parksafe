@@ -48,49 +48,9 @@ class LocationManager: NSObject, ObservableObject {
     }
     
     func reverseGeocodeLocation(_ coordinate: CLLocationCoordinate2D, completion: @escaping (String) -> Void) {
-        isLoadingAddress = true
-        let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-        
-        guard let request = MKReverseGeocodingRequest(location: location) else {
-            isLoadingAddress = false
-            completion("Unknown Location")
-            return
-        }
-        
-        request.getMapItems { [weak self] (mapItems: [MKMapItem]?, error: (any Error)?) in
-            guard let self else { return }
-            DispatchQueue.main.async {
-                self.isLoadingAddress = false
-                
-                if let error = error {
-                    print("Reverse geocoding error: \(error.localizedDescription)")
-                    completion("Unknown Location")
-                    return
-                }
-                
-                guard let mapItem = mapItems?.first else {
-                    completion("Unknown Location")
-                    return
-                }
-                
-                var address: String
-                
-                if let formatted = mapItem.address?.formattedAddress {
-                    address = formatted
-                } else if let representations = mapItem.addressRepresentations, let first = representations.first {
-                    address = first.formattedAddress
-                } else if let name = mapItem.name, !name.isEmpty {
-                    address = name
-                } else if let loc = mapItem.location {
-                    let coord = loc.coordinate
-                    address = String(format: "%.5f, %.5f", coord.latitude, coord.longitude)
-                } else {
-                    address = "Unknown Location"
-                }
-                
-                completion(address)
-            }
-        }
+        isLoadingAddress = false
+        let address = String(format: "%.5f, %.5f", coordinate.latitude, coordinate.longitude)
+        completion(address)
     }
 }
 

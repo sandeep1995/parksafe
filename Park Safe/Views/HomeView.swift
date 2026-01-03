@@ -36,19 +36,6 @@ struct HomeView: View {
     
     private var idleView: some View {
         VStack(spacing: 30) {
-            // Hero Image
-            ZStack {
-                Circle()
-                    .fill(Theme.mainGradient.opacity(0.1))
-                    .frame(width: 200, height: 200)
-                
-                Image(systemName: "car.fill")
-                    .font(.system(size: 80))
-                    .foregroundStyle(Theme.mainGradient)
-                    .shadow(color: Theme.gradientStart.opacity(0.3), radius: 10, x: 0, y: 5)
-            }
-            .padding(.top, 20)
-            
             // Time selection card
             VStack(spacing: 20) {
                 Text("How long are you parking?")
