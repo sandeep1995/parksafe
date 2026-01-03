@@ -15,12 +15,31 @@ struct ParkingSession: Identifiable, Codable {
     let location: LocationData?
     let duration: TimeInterval
     
-    init(id: UUID = UUID(), startTime: Date, endTime: Date, location: LocationData? = nil) {
+    // Optional features
+    let photoFileName: String?      // Photo of parking spot
+    let hourlyRate: Double?         // Parking cost per hour
+    let floor: String?              // Parking garage floor
+    let section: String?            // Parking garage section
+    
+    init(
+        id: UUID = UUID(),
+        startTime: Date,
+        endTime: Date,
+        location: LocationData? = nil,
+        photoFileName: String? = nil,
+        hourlyRate: Double? = nil,
+        floor: String? = nil,
+        section: String? = nil
+    ) {
         self.id = id
         self.startTime = startTime
         self.endTime = endTime
         self.location = location
         self.duration = endTime.timeIntervalSince(startTime)
+        self.photoFileName = photoFileName
+        self.hourlyRate = hourlyRate
+        self.floor = floor
+        self.section = section
     }
     
     var formattedDate: String {
@@ -48,6 +67,24 @@ struct ParkingSession: Identifiable, Codable {
             return components[0].trimmingCharacters(in: .whitespaces)
         }
         return location.address
+    }
+    
+    // Calculate total parking cost
+    var totalCost: Double? {
+        guard let rate = hourlyRate else { return nil }
+        let hours = duration / 3600
+        return hours * rate
+    }
+    
+    var formattedCost: String? {
+        guard let cost = totalCost else { return nil }
+        return String(format: "$%.2f", cost)
+    }
+    
+    // Combined floor and section display
+    var parkingSpotInfo: String? {
+        let parts = [floor, section].compactMap { $0 }.filter { !$0.isEmpty }
+        return parts.isEmpty ? nil : parts.joined(separator: " • ")
     }
 }
 

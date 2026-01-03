@@ -14,6 +14,8 @@ struct ContentView: View {
     @StateObject private var historyViewModel = HistoryViewModel()
     @StateObject private var settingsViewModel = SettingsViewModel()
     
+    @State private var hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedPermissionOnboarding")
+    
     init() {
         let locationMgr = LocationManager()
         let notificationMgr = NotificationManager.shared
@@ -26,6 +28,22 @@ struct ContentView: View {
     }
     
     var body: some View {
+        Group {
+            if hasCompletedOnboarding {
+                mainAppView
+            } else {
+                PermissionOnboardingView(
+                    locationManager: locationManager,
+                    notificationManager: notificationManager,
+                    hasCompletedOnboarding: $hasCompletedOnboarding
+                )
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: hasCompletedOnboarding)
+    }
+    
+    private var mainAppView: some View {
         TabView {
             HomeView(viewModel: parkingViewModel)
                 .tabItem {
@@ -51,24 +69,17 @@ struct ContentView: View {
             .accessibilityLabel("Settings tab")
         }
         .onAppear {
-            // Request permissions on first launch
-            requestPermissions()
-            
             // Refresh settings when settings change
             parkingViewModel.refreshSettings()
         }
         .onChange(of: settingsViewModel.settings) { _, _ in
             parkingViewModel.refreshSettings()
         }
-    }
-    
-    private func requestPermissions() {
-        // Request location authorization
-        locationManager.requestAuthorization()
-        
-        // Request notification authorization
-        Task {
-            await notificationManager.requestAuthorization()
+        .onChange(of: parkingViewModel.state) { _, newState in
+            // Reload history when parking session ends
+            if case .idle = newState {
+                historyViewModel.loadSessions()
+            }
         }
     }
 }

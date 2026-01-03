@@ -79,4 +79,17 @@ class HistoryViewModel: ObservableObject {
         let estimatedTickets = Int(totalCost / 50.0)
         return max(0, estimatedTickets)
     }
+    
+    // Total money spent on parking (only for sessions with cost tracking)
+    var totalSpent: Double {
+        sessions.compactMap { $0.totalCost }.reduce(0, +)
+    }
+    
+    var formattedTotalSpent: String {
+        String(format: "$%.2f", totalSpent)
+    }
+    
+    var hasSpendingData: Bool {
+        sessions.contains { $0.hourlyRate != nil }
+    }
 }

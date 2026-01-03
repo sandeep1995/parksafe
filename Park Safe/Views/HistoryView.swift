@@ -10,7 +10,7 @@ import SwiftUI
 struct HistoryView: View {
     @ObservedObject var viewModel: HistoryViewModel
     @State private var selectedSession: ParkingSession?
-    @State private var showMapView = false
+    @State private var showDetailView = false
     
     var body: some View {
         NavigationView {
@@ -38,10 +38,8 @@ struct HistoryView: View {
                                     .listRowBackground(Theme.cardBackground)
                                     .contentShape(Rectangle())
                                     .onTapGesture {
-                                        if session.location != nil {
-                                            selectedSession = session
-                                            showMapView = true
-                                        }
+                                        selectedSession = session
+                                        showDetailView = true
                                     }
                                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                         Button(role: .destructive) {
@@ -59,9 +57,15 @@ struct HistoryView: View {
                 .scrollContentBackground(.hidden)
             }
             .navigationTitle("History")
-            .sheet(isPresented: $showMapView) {
-                if let session = selectedSession, let location = session.location {
-                    MapView(location: location)
+            .onAppear {
+                viewModel.loadSessions()
+            }
+            .refreshable {
+                viewModel.loadSessions()
+            }
+            .sheet(isPresented: $showDetailView) {
+                if let session = selectedSession {
+                    ParkingSessionDetailView(session: session)
                 }
             }
         }
@@ -97,12 +101,21 @@ struct HistoryView: View {
                 Divider()
                     .padding(.vertical, 10)
                 
-                StatItem(
-                    value: "\(viewModel.estimatedTicketsAvoided)",
-                    label: "Saved",
-                    icon: "checkmark.shield.fill",
-                    color: .green
-                )
+                if viewModel.hasSpendingData {
+                    StatItem(
+                        value: viewModel.formattedTotalSpent,
+                        label: "Spent",
+                        icon: "dollarsign.circle.fill",
+                        color: .green
+                    )
+                } else {
+                    StatItem(
+                        value: "\(viewModel.estimatedTicketsAvoided)",
+                        label: "Saved",
+                        icon: "checkmark.shield.fill",
+                        color: .green
+                    )
+                }
             }
         }
         .modernCard()
@@ -144,7 +157,7 @@ struct ParkingSessionRow: View {
     let session: ParkingSession
     
     var body: some View {
-        HStack {
+        HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(session.formattedDate)
                     .font(.body)
@@ -158,6 +171,34 @@ struct ParkingSessionRow: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
+                }
+                
+                // Optional details row
+                if session.parkingSpotInfo != nil || session.formattedCost != nil {
+                    HStack(spacing: 8) {
+                        if let spotInfo = session.parkingSpotInfo {
+                            HStack(spacing: 2) {
+                                Image(systemName: "building.fill")
+                                    .font(.caption2)
+                                    .foregroundColor(.purple)
+                                Text(spotInfo)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        if let cost = session.formattedCost {
+                            HStack(spacing: 2) {
+                                Image(systemName: "dollarsign.circle.fill")
+                                    .font(.caption2)
+                                    .foregroundColor(.green)
+                                Text(cost)
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.green)
+                            }
+                        }
+                    }
                 }
             }
             
@@ -173,10 +214,17 @@ struct ParkingSessionRow: View {
                     .background(Color.blue.opacity(0.1))
                     .cornerRadius(8)
                 
-                if session.location != nil {
-                    Image(systemName: "location.fill")
-                        .font(.caption)
-                        .foregroundColor(.blue)
+                HStack(spacing: 4) {
+                    if session.photoFileName != nil {
+                        Image(systemName: "photo.fill")
+                            .font(.caption)
+                            .foregroundColor(.purple)
+                    }
+                    if session.location != nil {
+                        Image(systemName: "location.fill")
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                    }
                 }
             }
         }

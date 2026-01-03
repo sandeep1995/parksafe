@@ -12,94 +12,129 @@ struct ActiveParkingView: View {
     @ObservedObject var viewModel: ParkingSessionViewModel
     @State private var showAddTimeMenu = false
     @State private var showMapView = false
+    @State private var showPhotoFullScreen = false
     
     var body: some View {
-        VStack(spacing: 30) {
-            // Timer Card
-            VStack(spacing: 30) {
-                // Progress Ring
-                ZStack {
-                    // Background track
-                    Circle()
-                        .stroke(Color(.systemGray6), lineWidth: 20)
-                        .frame(width: 260, height: 260)
-                    
-                    // Shadow for depth
-                    Circle()
-                        .stroke(viewModel.timeColor.opacity(0.2), lineWidth: 20)
-                        .frame(width: 260, height: 260)
-                        .blur(radius: 5)
-                    
-                    // Progress
-                    Circle()
-                        .trim(from: 0, to: viewModel.progress)
-                        .stroke(
-                            AngularGradient(
-                                gradient: Gradient(colors: [viewModel.timeColor.opacity(0.8), viewModel.timeColor]),
-                                center: .center,
-                                startAngle: .degrees(-90),
-                                endAngle: .degrees(270)
-                            ),
-                            style: StrokeStyle(lineWidth: 20, lineCap: .round)
-                        )
-                        .frame(width: 260, height: 260)
-                        .rotationEffect(.degrees(-90))
-                        .animation(.linear(duration: 1), value: viewModel.progress)
-                        .shadow(color: viewModel.timeColor.opacity(0.3), radius: 10, x: 0, y: 0)
-                    
-                    // Time Text
-                    VStack(spacing: 5) {
-                        Text(viewModel.remainingTime.formattedDuration())
-                            .font(.system(size: 52, weight: .bold, design: .rounded))
+        VStack(spacing: 24) {
+            // Timer Display
+            VStack(spacing: 16) {
+                // Time Display
+                Text(viewModel.remainingTime.formattedDuration())
+                    .font(.system(size: 64, weight: .bold, design: .rounded))
+                    .foregroundColor(viewModel.timeColor)
+                    .monospacedDigit()
+                    .contentTransition(.numericText(value: viewModel.remainingTime))
+                
+                Text("remaining")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .textCase(.uppercase)
+                    .tracking(1)
+            }
+            .padding(.vertical, 20)
+            .frame(maxWidth: .infinity)
+            .modernCard()
+            
+            // Location
+            if let location = viewModel.parkingLocation {
+                VStack(spacing: 12) {
+                    HStack {
+                        Image(systemName: "mappin.circle.fill")
+                            .foregroundColor(.red)
+                        Text(location.address)
+                            .font(.subheadline)
                             .foregroundColor(.primary)
-                            .monospacedDigit()
-                            .contentTransition(.numericText(value: viewModel.remainingTime))
-                        
-                        Text("REMAINING")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .foregroundColor(.secondary)
-                            .tracking(2)
+                            .lineLimit(2)
+                        Spacer()
+                    }
+                    
+                    Button(action: {
+                        showMapView = true
+                        hapticFeedback()
+                    }) {
+                        HStack {
+                            Image(systemName: "map.fill")
+                            Text("Show on Map")
+                        }
+                        .font(.footnote)
+                        .fontWeight(.medium)
+                        .foregroundColor(.blue)
                     }
                 }
-                .padding(.top, 10)
-                
-                // Location Info
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(12)
+            }
+            
+            // Optional Details (simplified)
+            if hasOptionalDetails {
                 VStack(spacing: 12) {
-                    Label {
-                        Text(viewModel.parkingLocation?.address ?? viewModel.currentAddress)
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .multilineTextAlignment(.center)
-                    } icon: {
-                        Image(systemName: "mappin.circle.fill")
-                            .foregroundStyle(.red)
-                    }
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-                    
-                    if viewModel.parkingLocation != nil {
+                    if let photo = viewModel.parkingPhoto {
                         Button(action: {
-                            showMapView = true
-                            hapticFeedback()
+                            showPhotoFullScreen = true
                         }) {
-                            Text("Find My Car")
-                                .font(.footnote)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.blue)
+                            Image(uiImage: photo)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(height: 100)
+                                .frame(maxWidth: .infinity)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
-                        .sheet(isPresented: $showMapView) {
-                            if let location = viewModel.parkingLocation {
-                                MapView(location: location)
+                    }
+                    
+                    HStack(spacing: 12) {
+                        if !viewModel.floor.isEmpty {
+                            HStack(spacing: 4) {
+                                Image(systemName: "building.fill")
+                                    .font(.caption)
+                                    .foregroundColor(.purple)
+                                Text(viewModel.floor)
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                        }
+                        
+                        if !viewModel.section.isEmpty {
+                            HStack(spacing: 4) {
+                                Image(systemName: "square.grid.2x2.fill")
+                                    .font(.caption)
+                                    .foregroundColor(.orange)
+                                Text(viewModel.section)
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                        }
+                        
+                        if let cost = viewModel.formattedCurrentCost {
+                            Spacer()
+                            HStack(spacing: 4) {
+                                Image(systemName: "dollarsign.circle.fill")
+                                    .font(.caption)
+                                    .foregroundColor(.green)
+                                Text(cost)
+                                    .font(.caption)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.green)
                             }
                         }
                     }
                 }
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(12)
             }
-            .modernCard()
             
-            // Actions Grid
+            Spacer()
+            
+            // Actions
             HStack(spacing: 15) {
                 Menu {
                     ForEach(Constants.addTimeOptions, id: \.self) { duration in
@@ -107,22 +142,20 @@ struct ActiveParkingView: View {
                             viewModel.addTime(duration)
                             hapticFeedback()
                         }) {
-                            Label("+\(duration.displayName())", systemImage: "clock.badge.plus")
+                            Label("+\(duration.displayName())", systemImage: "plus.circle")
                         }
                     }
                 } label: {
-                    VStack {
-                        Image(systemName: "clock.badge.plus.fill")
-                            .font(.title2)
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
                         Text("Add Time")
-                            .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 80)
+                    .padding()
                     .background(Color.orange.gradient)
                     .foregroundColor(.white)
-                    .cornerRadius(Theme.cornerRadius)
-                    .shadow(color: .orange.opacity(0.3), radius: 8, y: 4)
+                    .cornerRadius(12)
+                    .fontWeight(.semibold)
                 }
                 
                 Button(action: {
@@ -131,26 +164,66 @@ struct ActiveParkingView: View {
                     }
                     hapticFeedback()
                 }) {
-                    VStack {
+                    HStack {
                         Image(systemName: "stop.circle.fill")
-                            .font(.title2)
-                        Text("End Session")
-                            .fontWeight(.semibold)
+                        Text("End")
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 80)
+                    .padding()
                     .background(Color.red.gradient)
                     .foregroundColor(.white)
-                    .cornerRadius(Theme.cornerRadius)
-                    .shadow(color: .red.opacity(0.3), radius: 8, y: 4)
+                    .cornerRadius(12)
+                    .fontWeight(.semibold)
                 }
             }
         }
+        .padding()
     }
     
     private func hapticFeedback() {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
+    }
+    
+    // MARK: - Optional Details
+    
+    private var hasOptionalDetails: Bool {
+        viewModel.parkingPhoto != nil ||
+        viewModel.hourlyRate != nil ||
+        !viewModel.floor.isEmpty ||
+        !viewModel.section.isEmpty
+    }
+}
+
+// MARK: - Photo Full Screen View
+
+struct PhotoFullScreenView: View {
+    let image: UIImage
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFit()
+            
+            VStack {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title)
+                            .foregroundStyle(.white.opacity(0.8))
+                    }
+                    .padding()
+                }
+                Spacer()
+            }
+        }
     }
 }
 
