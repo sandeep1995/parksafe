@@ -362,7 +362,16 @@ class ParkingSessionViewModel: ObservableObject {
         // End any existing activities first
         for activity in Activity<ParkingActivityAttributes>.activities {
             Task {
-                await activity.end(dismissalPolicy: .immediate)
+                let finalState = ParkingActivityAttributes.ContentState(
+                    remainingTime: 0,
+                    endTime: Date()
+                )
+                let finalContent = ActivityContent(
+                    state: finalState,
+                    staleDate: Date(),
+                    relevanceScore: 0
+                )
+                await activity.end(finalContent, dismissalPolicy: .immediate)
             }
         }
         
@@ -446,7 +455,17 @@ class ParkingSessionViewModel: ObservableObject {
         guard let activity = activities.first else { return }
         
         Task {
-            await activity.end(dismissalPolicy: .immediate)
+            let finalState = ParkingActivityAttributes.ContentState(
+                remainingTime: 0,
+                endTime: Date()
+            )
+            let finalContent = ActivityContent(
+                state: finalState,
+                staleDate: Date(),
+                relevanceScore: 0
+            )
+            await activity.end(finalContent, dismissalPolicy: .immediate)
         }
     }
 }
+
