@@ -13,6 +13,8 @@ struct SettingsView: View {
     @ObservedObject var locationManager: LocationManager
     @ObservedObject var notificationManager: NotificationManager
     @ObservedObject var parkingViewModel: ParkingSessionViewModel
+    @ObservedObject var subscriptionManager = SubscriptionManager.shared
+    @State private var showPaywall = false
     
     var body: some View {
         NavigationView {
@@ -20,13 +22,82 @@ struct SettingsView: View {
                 Theme.background.ignoresSafeArea()
                 
                 Form {
+                    // Subscription section
+                    Section {
+                        if subscriptionManager.isPro {
+                            HStack {
+                                Label {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        HStack {
+                                            Text("ParkSafe Pro")
+                                                .fontWeight(.semibold)
+                                            ProBadge()
+                                        }
+                                        Text("All features unlocked")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                } icon: {
+                                    Image(systemName: "crown.fill")
+                                        .foregroundColor(.orange)
+                                }
+                                Spacer()
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                            }
+                            
+                            Button("Manage Subscription") {
+                                if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
+                                    UIApplication.shared.open(url)
+                                }
+                            }
+                            .foregroundColor(.blue)
+                        } else {
+                            Button {
+                                showPaywall = true
+                            } label: {
+                                HStack {
+                                    Label {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text("Upgrade to Pro")
+                                                .fontWeight(.semibold)
+                                                .foregroundColor(.primary)
+                                            Text("Unlock all premium features")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    } icon: {
+                                        Image(systemName: "crown.fill")
+                                            .foregroundColor(.orange)
+                                    }
+                                    Spacer()
+                                    Text("$2.99/mo")
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.orange)
+                                }
+                            }
+                            
+                            Button("Restore Purchases") {
+                                Task {
+                                    await subscriptionManager.restorePurchases()
+                                }
+                            }
+                            .foregroundColor(.blue)
+                        }
+                    } header: {
+                        Text("Subscription")
+                    }
+                    .listRowBackground(Theme.cardBackground)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    
                     // Notifications section
                     Section {
                         Picker("Warning Time", selection: Binding(
                             get: { viewModel.settings.notificationTiming },
                             set: { viewModel.updateNotificationTiming($0) }
                         )) {
-                            ForEach(NotificationTiming.allCases, id: \.self) { timing in
+                            ForEach(subscriptionManager.isPro ? NotificationTiming.proOptions : NotificationTiming.freeOptions, id: \.self) { timing in
                                 Text(timing.displayName).tag(timing)
                             }
                         }
@@ -40,6 +111,34 @@ struct SettingsView: View {
                             } icon: {
                                 Image(systemName: "speaker.wave.2.fill")
                                     .foregroundColor(.blue)
+                            }
+                        }
+                        
+                        // Custom notification sound (Pro only)
+                        if subscriptionManager.isPro {
+                            Picker("Notification Sound", selection: Binding(
+                                get: { viewModel.settings.notificationSound },
+                                set: { viewModel.updateNotificationSound($0) }
+                            )) {
+                                ForEach(NotificationSound.allCases, id: \.self) { sound in
+                                    Text(sound.displayName).tag(sound)
+                                }
+                            }
+                        } else {
+                            Button {
+                                showPaywall = true
+                            } label: {
+                                HStack {
+                                    Label {
+                                        Text("Custom Sounds")
+                                            .foregroundColor(.primary)
+                                    } icon: {
+                                        Image(systemName: "music.note")
+                                            .foregroundColor(.pink)
+                                    }
+                                    Spacer()
+                                    ProBadge()
+                                }
                             }
                         }
                         
@@ -117,48 +216,6 @@ struct SettingsView: View {
                     .listRowBackground(Theme.cardBackground)
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     
-                    // Default duration section
-                    Section {
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Label {
-                                    Text("Default Duration")
-                                } icon: {
-                                    Image(systemName: "clock.fill")
-                                        .foregroundColor(.orange)
-                                }
-                            }
-                            
-                            HStack(spacing: 12) {
-                                Picker("Hours", selection: $viewModel.defaultDurationHours) {
-                                    ForEach(0..<24) { hour in
-                                        Text("\(hour)h").tag(hour)
-                                    }
-                                }
-                                .pickerStyle(.menu)
-                                .frame(maxWidth: .infinity)
-                                .onChange(of: viewModel.defaultDurationHours) { _, _ in
-                                    viewModel.updateDefaultDuration()
-                                }
-                                
-                                Picker("Minutes", selection: $viewModel.defaultDurationMinutes) {
-                                    ForEach(Array(stride(from: 0, to: 60, by: 5)), id: \.self) { minute in
-                                        Text("\(minute)m").tag(minute)
-                                    }
-                                }
-                                .pickerStyle(.menu)
-                                .frame(maxWidth: .infinity)
-                                .onChange(of: viewModel.defaultDurationMinutes) { _, _ in
-                                    viewModel.updateDefaultDuration()
-                                }
-                            }
-                        }
-                    } header: {
-                        Text("Defaults")
-                    }
-                    .listRowBackground(Theme.cardBackground)
-                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                    
                     // About section
                     Section {
                         HStack {
@@ -185,6 +242,9 @@ struct SettingsView: View {
                 .environment(\.horizontalSizeClass, .compact)
             }
             .navigationTitle("Settings")
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
+            }
         }
     }
     

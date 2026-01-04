@@ -50,12 +50,14 @@ struct ContentView: View {
                     Label("Home", systemImage: "car.fill")
                 }
                 .accessibilityLabel("Home tab")
+                .tag(0)
             
             HistoryView(viewModel: historyViewModel)
                 .tabItem {
                     Label("History", systemImage: "clock.fill")
                 }
                 .accessibilityLabel("History tab")
+                .tag(1)
             
             SettingsView(
                 viewModel: settingsViewModel,
@@ -67,6 +69,7 @@ struct ContentView: View {
                 Label("Settings", systemImage: "gear")
             }
             .accessibilityLabel("Settings tab")
+            .tag(2)
         }
         .onAppear {
             // Refresh settings when settings change

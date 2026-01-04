@@ -10,6 +10,7 @@ import PhotosUI
 
 struct HomeView: View {
     @ObservedObject var viewModel: ParkingSessionViewModel
+    @ObservedObject var subscriptionManager = SubscriptionManager.shared
     @State private var customHours = 0
     @State private var customMinutes = 15
     @State private var useCustomDuration = false
@@ -20,6 +21,7 @@ struct HomeView: View {
     @State private var showCamera = false
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var hourlyRateText = ""
+    @State private var showPaywall = false
     
     var body: some View {
         NavigationView {
@@ -39,6 +41,9 @@ struct HomeView: View {
             }
             .navigationTitle("ParkSafe")
             .navigationBarTitleDisplayMode(.large)
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
+            }
         }
     }
     
@@ -181,65 +186,92 @@ struct HomeView: View {
     
     private var photoSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Photo of Parking Spot", systemImage: "camera.fill")
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(.secondary)
+            HStack {
+                Label("Photo of Parking Spot", systemImage: "camera.fill")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+                
+                if !subscriptionManager.isPro {
+                    ProBadge()
+                }
+            }
             
-            if let photo = viewModel.parkingPhoto {
-                ZStack(alignment: .topTrailing) {
-                    Image(uiImage: photo)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(height: 150)
-                        .frame(maxWidth: .infinity)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    
-                    Button(action: {
-                        withAnimation {
-                            viewModel.parkingPhoto = nil
+            if subscriptionManager.isPro {
+                if let photo = viewModel.parkingPhoto {
+                    ZStack(alignment: .topTrailing) {
+                        Image(uiImage: photo)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(height: 150)
+                            .frame(maxWidth: .infinity)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        
+                        Button(action: {
+                            withAnimation {
+                                viewModel.parkingPhoto = nil
+                            }
+                            hapticFeedback()
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title2)
+                                .foregroundStyle(.white, .red)
+                                .shadow(radius: 2)
                         }
-                        hapticFeedback()
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(.white, .red)
-                            .shadow(radius: 2)
+                        .padding(8)
                     }
-                    .padding(8)
+                } else {
+                    HStack(spacing: 12) {
+                        Button(action: {
+                            showCamera = true
+                            hapticFeedback()
+                        }) {
+                            VStack(spacing: 8) {
+                                Image(systemName: "camera.fill")
+                                    .font(.title2)
+                                Text("Camera")
+                                    .font(.caption)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(12)
+                        }
+                        .foregroundColor(.primary)
+                        
+                        PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                            VStack(spacing: 8) {
+                                Image(systemName: "photo.fill")
+                                    .font(.title2)
+                                Text("Library")
+                                    .font(.caption)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(12)
+                        }
+                        .foregroundColor(.primary)
+                    }
                 }
             } else {
-                HStack(spacing: 12) {
-                    Button(action: {
-                        showCamera = true
-                        hapticFeedback()
-                    }) {
-                        VStack(spacing: 8) {
-                            Image(systemName: "camera.fill")
-                                .font(.title2)
-                            Text("Camera")
-                                .font(.caption)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(12)
+                // Locked state for non-Pro users
+                Button {
+                    showPaywall = true
+                } label: {
+                    HStack {
+                        Image(systemName: "lock.fill")
+                            .foregroundColor(.orange)
+                        Text("Upgrade to save parking photos")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.orange)
                     }
-                    .foregroundColor(.primary)
-                    
-                    PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                        VStack(spacing: 8) {
-                            Image(systemName: "photo.fill")
-                                .font(.title2)
-                            Text("Library")
-                                .font(.caption)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(12)
-                    }
-                    .foregroundColor(.primary)
+                    .padding()
+                    .background(Color.orange.opacity(0.1))
+                    .cornerRadius(12)
                 }
             }
         }
@@ -262,25 +294,52 @@ struct HomeView: View {
     
     private var costSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Hourly Rate", systemImage: "dollarsign.circle.fill")
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(.secondary)
-            
             HStack {
-                Text("$")
+                Label("Hourly Rate", systemImage: "dollarsign.circle.fill")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
                     .foregroundColor(.secondary)
-                TextField("0.00", text: $hourlyRateText)
-                    .keyboardType(.decimalPad)
-                    .onChange(of: hourlyRateText) { _, newValue in
-                        viewModel.hourlyRate = Double(newValue)
-                    }
-                Text("/ hour")
-                    .foregroundColor(.secondary)
+                
+                if !subscriptionManager.isPro {
+                    ProBadge()
+                }
             }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
+            
+            if subscriptionManager.isPro {
+                HStack {
+                    Text("$")
+                        .foregroundColor(.secondary)
+                    TextField("0.00", text: $hourlyRateText)
+                        .keyboardType(.decimalPad)
+                        .onChange(of: hourlyRateText) { _, newValue in
+                            viewModel.hourlyRate = Double(newValue)
+                        }
+                    Text("/ hour")
+                        .foregroundColor(.secondary)
+                }
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(12)
+            } else {
+                // Locked state for non-Pro users
+                Button {
+                    showPaywall = true
+                } label: {
+                    HStack {
+                        Image(systemName: "lock.fill")
+                            .foregroundColor(.orange)
+                        Text("Upgrade to track parking costs")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.orange)
+                    }
+                    .padding()
+                    .background(Color.orange.opacity(0.1))
+                    .cornerRadius(12)
+                }
+            }
         }
     }
     

@@ -178,6 +178,16 @@ struct ActiveParkingView: View {
             }
         }
         .padding()
+        .sheet(isPresented: $showMapView) {
+            if let location = viewModel.parkingLocation {
+                MapView(location: location)
+            }
+        }
+        .fullScreenCover(isPresented: $showPhotoFullScreen) {
+            if let photo = viewModel.parkingPhoto {
+                PhotoFullScreenView(image: photo)
+            }
+        }
     }
     
     private func hapticFeedback() {

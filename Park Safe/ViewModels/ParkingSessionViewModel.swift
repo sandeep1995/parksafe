@@ -29,7 +29,7 @@ enum ParkingState: Equatable {
 
 class ParkingSessionViewModel: ObservableObject {
     @Published var state: ParkingState = .idle
-    @Published var selectedDuration: TimeInterval = 3600 // Default 1 hour
+    @Published var selectedDuration: TimeInterval = 7200 // Default 2 hours
     @Published var remainingTime: TimeInterval = 0
     @Published var currentAddress: String = "Locating..."
     @Published var parkingLocation: LocationData?
@@ -51,9 +51,6 @@ class ParkingSessionViewModel: ObservableObject {
         self.locationManager = locationManager
         self.notificationManager = notificationManager
         self.settings = persistenceManager.loadAppSettings()
-        
-        // Load default duration from settings
-        self.selectedDuration = settings.defaultDuration
         
         // Observe location updates
         locationManager.$currentAddress
