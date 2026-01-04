@@ -42,9 +42,68 @@ class SubscriptionManager: ObservableObject {
     @Published var errorMessage: String?
     
     private var updateListenerTask: Task<Void, Error>?
+    private let userDefaults = UserDefaults.standard
+    private let firstLaunchDateKey = "firstLaunchDate"
     
+    // Trial period duration in days
+    private let trialPeriodDays = 7
+    
+    // All features are available - this is now only used for paywall display logic
     var isPro: Bool {
-        subscriptionStatus == .subscribed
+        // If subscribed, always pro
+        if subscriptionStatus == .subscribed {
+            return true
+        }
+        // If within trial period, features are available
+        return !isTrialExpired
+    }
+    
+    // Check if trial period has expired
+    var isTrialExpired: Bool {
+        guard let firstLaunch = firstLaunchDate else {
+            // If no first launch date, trial hasn't started yet (shouldn't happen after init)
+            return false
+        }
+        
+        let calendar = Calendar.current
+        if let trialEndDate = calendar.date(byAdding: .day, value: trialPeriodDays, to: firstLaunch) {
+            return Date() > trialEndDate
+        }
+        return false
+    }
+    
+    // Days remaining in trial
+    var trialDaysRemaining: Int {
+        guard let firstLaunch = firstLaunchDate else {
+            return trialPeriodDays
+        }
+        
+        let calendar = Calendar.current
+        if let trialEndDate = calendar.date(byAdding: .day, value: trialPeriodDays, to: firstLaunch) {
+            let daysRemaining = calendar.dateComponents([.day], from: Date(), to: trialEndDate).day ?? 0
+            return max(0, daysRemaining)
+        }
+        return 0
+    }
+    
+    // First launch date
+    private var firstLaunchDate: Date? {
+        get {
+            return userDefaults.object(forKey: firstLaunchDateKey) as? Date
+        }
+        set {
+            if let date = newValue {
+                userDefaults.set(date, forKey: firstLaunchDateKey)
+            } else {
+                userDefaults.removeObject(forKey: firstLaunchDateKey)
+            }
+        }
+    }
+    
+    private func setFirstLaunchDate() {
+        if firstLaunchDate == nil {
+            firstLaunchDate = Date()
+        }
     }
     
     var monthlyProduct: Product? {
@@ -52,6 +111,9 @@ class SubscriptionManager: ObservableObject {
     }
     
     private init() {
+        // Set first launch date if not already set
+        setFirstLaunchDate()
+        
         // Start listening for transactions after init completes
         Task { @MainActor [weak self] in
             self?.updateListenerTask = self?.listenForTransactions()

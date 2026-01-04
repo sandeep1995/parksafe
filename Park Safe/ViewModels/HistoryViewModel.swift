@@ -15,22 +15,64 @@ struct HistorySection: Identifiable {
 }
 
 class HistoryViewModel: ObservableObject {
-    @Published var sessions: [ParkingSession] = []
+    @Published var displayedSessions: [ParkingSession] = [] // Currently displayed sessions
     @Published var sections: [HistorySection] = []
+    @Published var isLoadingMore = false
+    @Published var hasMoreSessions = true
     
     private let persistenceManager = PersistenceManager.shared
+    private let batchSize = 20 // Load 20 sessions at a time
+    private var allSessions: [ParkingSession] = [] // All sessions from storage
     
     init() {
-        loadSessions()
+        loadInitialSessions()
     }
     
     func loadSessions() {
-        sessions = persistenceManager.loadParkingSessions()
+        // Reload all sessions and reset pagination
+        allSessions = persistenceManager.loadParkingSessions()
+        displayedSessions = []
+        hasMoreSessions = true
+        loadMoreSessions()
+    }
+    
+    func loadInitialSessions() {
+        allSessions = persistenceManager.loadParkingSessions()
+        displayedSessions = []
+        hasMoreSessions = !allSessions.isEmpty
+        loadMoreSessions()
+    }
+    
+    func loadMoreSessions() {
+        guard !isLoadingMore && hasMoreSessions else { return }
+        
+        isLoadingMore = true
+        
+        // Calculate how many more sessions to load
+        let currentCount = displayedSessions.count
+        let nextBatch = Array(allSessions.dropFirst(currentCount).prefix(batchSize))
+        
+        if nextBatch.isEmpty {
+            hasMoreSessions = false
+            isLoadingMore = false
+            return
+        }
+        
+        // Add new batch to displayed sessions
+        displayedSessions.append(contentsOf: nextBatch)
+        
+        // Update sections with new sessions
         updateSections()
+        
+        // Check if there are more sessions to load
+        hasMoreSessions = displayedSessions.count < allSessions.count
+        
+        isLoadingMore = false
     }
     
     func deleteSession(_ session: ParkingSession) {
         persistenceManager.deleteParkingSession(session)
+        // Reload all sessions
         loadSessions()
     }
     
@@ -39,7 +81,7 @@ class HistoryViewModel: ObservableObject {
         var thisWeekSessions: [ParkingSession] = []
         var olderSessions: [ParkingSession] = []
         
-        for session in sessions {
+        for session in displayedSessions {
             if session.startTime.isToday() {
                 todaySessions.append(session)
             } else if session.startTime.isThisWeek() {
@@ -65,11 +107,11 @@ class HistoryViewModel: ObservableObject {
     }
     
     var totalSessions: Int {
-        sessions.count
+        allSessions.count
     }
     
     var totalHoursParked: Double {
-        sessions.reduce(0) { $0 + $1.duration } / 3600
+        allSessions.reduce(0) { $0 + $1.duration } / 3600
     }
     
     var estimatedTicketsAvoided: Int {
@@ -82,7 +124,7 @@ class HistoryViewModel: ObservableObject {
     
     // Total money spent on parking (only for sessions with cost tracking)
     var totalSpent: Double {
-        sessions.compactMap { $0.totalCost }.reduce(0, +)
+        allSessions.compactMap { $0.totalCost }.reduce(0, +)
     }
     
     var formattedTotalSpent: String {
@@ -90,6 +132,11 @@ class HistoryViewModel: ObservableObject {
     }
     
     var hasSpendingData: Bool {
-        sessions.contains { $0.hourlyRate != nil }
+        allSessions.contains { $0.hourlyRate != nil }
+    }
+    
+    // Expose all sessions for export and analytics (not just displayed ones)
+    var allSessionsForExport: [ParkingSession] {
+        allSessions
     }
 }

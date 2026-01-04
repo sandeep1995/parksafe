@@ -15,30 +15,13 @@ struct HistoryView: View {
     @State private var showAnalytics = false
     @State private var showExport = false
     
-    // Limit free users to 10 sessions
+    // All features available - no limits
     private var displaySections: [HistorySection] {
-        guard !subscriptionManager.isPro else { return viewModel.sections }
-        
-        var count = 0
-        var limitedSections: [HistorySection] = []
-        
-        for section in viewModel.sections {
-            let remaining = FreeTierLimits.maxHistoryItems - count
-            if remaining <= 0 { break }
-            
-            let limitedSessions = Array(section.sessions.prefix(remaining))
-            if !limitedSessions.isEmpty {
-                limitedSections.append(HistorySection(id: section.id, title: section.title, sessions: limitedSessions))
-                count += limitedSessions.count
-            }
-        }
-        
-        return limitedSections
+        return viewModel.sections
     }
     
     private var hiddenSessionsCount: Int {
-        guard !subscriptionManager.isPro else { return 0 }
-        return max(0, viewModel.totalSessions - FreeTierLimits.maxHistoryItems)
+        return 0
     }
     
     var body: some View {
@@ -46,7 +29,7 @@ struct HistoryView: View {
             ZStack {
                 Theme.background.ignoresSafeArea()
                 
-                if viewModel.sections.isEmpty {
+                if viewModel.displayedSessions.isEmpty && !viewModel.isLoadingMore {
                     // Empty state
                     VStack(spacing: 20) {
                         Image(systemName: "clock.badge.questionmark")
@@ -69,7 +52,7 @@ struct HistoryView: View {
                                 .padding(.bottom, 10)
                         }
                         
-                        // Pro Actions (Analytics & Export)
+                        // Analytics & Export Actions
                         Section {
                             proActionsRow
                                 .listRowInsets(EdgeInsets())
@@ -100,18 +83,47 @@ struct HistoryView: View {
                                                 Label("Delete", systemImage: "trash")
                                             }
                                         }
+                                        .onAppear {
+                                            // Load more when reaching the last 5 items of all displayed sessions
+                                            if let index = viewModel.displayedSessions.firstIndex(where: { $0.id == session.id }) {
+                                                let totalDisplayed = viewModel.displayedSessions.count
+                                                if totalDisplayed > 0 && index >= totalDisplayed - 5 {
+                                                    viewModel.loadMoreSessions()
+                                                }
+                                            }
+                                        }
                                 }
                             }
                         }
                         
-                        // Upgrade prompt for hidden sessions
-                        if hiddenSessionsCount > 0 {
+                        // Loading indicator at bottom
+                        if viewModel.isLoadingMore {
                             Section {
-                                upgradePrompt
-                                    .listRowInsets(EdgeInsets())
-                                    .listRowBackground(Color.clear)
+                                HStack {
+                                    Spacer()
+                                    ProgressView()
+                                        .padding()
+                                    Spacer()
+                                }
+                                .listRowBackground(Color.clear)
                             }
                         }
+                        
+                        // End of list indicator
+                        if !viewModel.hasMoreSessions && !viewModel.displayedSessions.isEmpty {
+                            Section {
+                                HStack {
+                                    Spacer()
+                                    Text("All sessions loaded")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                        .padding()
+                                    Spacer()
+                                }
+                                .listRowBackground(Color.clear)
+                            }
+                        }
+                        
                     }
                     .scrollContentBackground(.hidden)
                 }
@@ -139,17 +151,13 @@ struct HistoryView: View {
         }
     }
     
-    // MARK: - Pro Actions Row
+    // MARK: - Analytics & Export Actions Row
     
     private var proActionsRow: some View {
         HStack(spacing: 12) {
             // Analytics Button
             Button {
-                if subscriptionManager.isPro {
-                    showAnalytics = true
-                } else {
-                    showPaywall = true
-                }
+                showAnalytics = true
             } label: {
                 HStack {
                     Image(systemName: "chart.bar.fill")
@@ -157,9 +165,6 @@ struct HistoryView: View {
                     Text("Analytics")
                         .font(.subheadline)
                         .fontWeight(.medium)
-                    if !subscriptionManager.isPro {
-                        ProBadge()
-                    }
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
@@ -170,11 +175,7 @@ struct HistoryView: View {
             
             // Export Button
             Button {
-                if subscriptionManager.isPro {
-                    showExport = true
-                } else {
-                    showPaywall = true
-                }
+                showExport = true
             } label: {
                 HStack {
                     Image(systemName: "square.and.arrow.up.fill")
@@ -182,9 +183,6 @@ struct HistoryView: View {
                     Text("Export")
                         .font(.subheadline)
                         .fontWeight(.medium)
-                    if !subscriptionManager.isPro {
-                        ProBadge()
-                    }
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
@@ -193,35 +191,6 @@ struct HistoryView: View {
             }
             .foregroundColor(.primary)
         }
-        .padding(.horizontal)
-    }
-    
-    // MARK: - Upgrade Prompt
-    
-    private var upgradePrompt: some View {
-        Button {
-            showPaywall = true
-        } label: {
-            VStack(spacing: 12) {
-                HStack {
-                    Image(systemName: "lock.fill")
-                        .foregroundColor(.orange)
-                    Text("\(hiddenSessionsCount) more sessions hidden")
-                        .fontWeight(.medium)
-                    Spacer()
-                    ProBadge()
-                }
-                
-                Text("Upgrade to Pro for unlimited history")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .padding()
-            .background(Color.orange.opacity(0.1))
-            .cornerRadius(12)
-        }
-        .foregroundColor(.primary)
         .padding(.horizontal)
     }
     

@@ -96,13 +96,19 @@ struct PaywallView: View {
             }
             .shadow(color: .orange.opacity(0.5), radius: 20)
             
-            Text("ParkSafe Pro")
+            Text("Continue Using ParkSafe")
                 .font(.system(size: 32, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
             
-            Text("Unlock all premium features")
-                .font(.subheadline)
-                .foregroundColor(.white.opacity(0.7))
+            if subscriptionManager.isTrialExpired {
+                Text("Your 7-day trial has ended")
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.7))
+            } else {
+                Text("\(subscriptionManager.trialDaysRemaining) days left in your trial")
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.7))
+            }
         }
         .padding(.top, 20)
     }

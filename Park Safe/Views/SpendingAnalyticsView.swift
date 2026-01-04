@@ -182,7 +182,7 @@ struct SpendingAnalyticsView: View {
                 .font(.headline)
                 .foregroundColor(.secondary)
             
-            let expensiveSessions = viewModel.sessions
+            let expensiveSessions = viewModel.allSessionsForExport
                 .filter { $0.totalCost != nil }
                 .sorted { ($0.totalCost ?? 0) > ($1.totalCost ?? 0) }
                 .prefix(5)
@@ -231,7 +231,7 @@ struct SpendingAnalyticsView: View {
     
     private var formattedAveragePerSession: String {
         guard viewModel.totalSessions > 0 else { return "$0.00" }
-        let sessionsWithCost = viewModel.sessions.filter { $0.totalCost != nil }
+        let sessionsWithCost = viewModel.allSessionsForExport.filter { $0.totalCost != nil }
         guard !sessionsWithCost.isEmpty else { return "$0.00" }
         let average = viewModel.totalSpent / Double(sessionsWithCost.count)
         return String(format: "$%.2f", average)
@@ -244,7 +244,7 @@ struct SpendingAnalyticsView: View {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "MMM"
         
-        for session in viewModel.sessions {
+        for session in viewModel.allSessionsForExport {
             if let cost = session.totalCost {
                 let month = dateFormatter.string(from: session.startTime)
                 spending[month, default: 0] += cost
@@ -268,7 +268,7 @@ struct SpendingAnalyticsView: View {
     private var locationBreakdown: [LocationSpending] {
         var breakdown: [String: (visits: Int, spent: Double)] = [:]
         
-        for session in viewModel.sessions {
+        for session in viewModel.allSessionsForExport {
             let location = session.truncatedAddress
             let cost = session.totalCost ?? 0
             

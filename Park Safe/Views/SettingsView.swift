@@ -24,7 +24,7 @@ struct SettingsView: View {
                 Form {
                     // Subscription section
                     Section {
-                        if subscriptionManager.isPro {
+                        if subscriptionManager.subscriptionStatus == .subscribed {
                             HStack {
                                 Label {
                                     VStack(alignment: .leading, spacing: 4) {
@@ -33,7 +33,7 @@ struct SettingsView: View {
                                                 .fontWeight(.semibold)
                                             ProBadge()
                                         }
-                                        Text("All features unlocked")
+                                        Text("Active subscription")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                     }
@@ -53,29 +53,56 @@ struct SettingsView: View {
                             }
                             .foregroundColor(.blue)
                         } else {
-                            Button {
-                                showPaywall = true
-                            } label: {
-                                HStack {
-                                    Label {
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text("Upgrade to Pro")
+                            HStack {
+                                Label {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        if subscriptionManager.isTrialExpired {
+                                            Text("Trial Expired")
                                                 .fontWeight(.semibold)
                                                 .foregroundColor(.primary)
-                                            Text("Unlock all premium features")
+                                            Text("Subscribe to continue using ParkSafe")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        } else {
+                                            Text("Trial Active")
+                                                .fontWeight(.semibold)
+                                                .foregroundColor(.primary)
+                                            Text("\(subscriptionManager.trialDaysRemaining) days remaining")
                                                 .font(.caption)
                                                 .foregroundColor(.secondary)
                                         }
-                                    } icon: {
-                                        Image(systemName: "crown.fill")
-                                            .foregroundColor(.orange)
                                     }
-                                    Spacer()
-                                    Text("$2.99/mo")
+                                } icon: {
+                                    Image(systemName: subscriptionManager.isTrialExpired ? "clock.badge.exclamationmark" : "clock.fill")
+                                        .foregroundColor(.orange)
+                                }
+                                Spacer()
+                                if subscriptionManager.isTrialExpired {
+                                    Text("Subscribe")
                                         .font(.subheadline)
                                         .fontWeight(.semibold)
                                         .foregroundColor(.orange)
                                 }
+                            }
+                            
+                            Button {
+                                showPaywall = true
+                            } label: {
+                                HStack {
+                                    Text(subscriptionManager.isTrialExpired ? "Subscribe Now" : "View Subscription")
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.white)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(
+                                    LinearGradient(
+                                        colors: [.orange, .pink],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .cornerRadius(10)
                             }
                             
                             Button("Restore Purchases") {
@@ -97,7 +124,7 @@ struct SettingsView: View {
                             get: { viewModel.settings.notificationTiming },
                             set: { viewModel.updateNotificationTiming($0) }
                         )) {
-                            ForEach(subscriptionManager.isPro ? NotificationTiming.proOptions : NotificationTiming.freeOptions, id: \.self) { timing in
+                            ForEach(NotificationTiming.allCases, id: \.self) { timing in
                                 Text(timing.displayName).tag(timing)
                             }
                         }
@@ -114,31 +141,13 @@ struct SettingsView: View {
                             }
                         }
                         
-                        // Custom notification sound (Pro only)
-                        if subscriptionManager.isPro {
-                            Picker("Notification Sound", selection: Binding(
-                                get: { viewModel.settings.notificationSound },
-                                set: { viewModel.updateNotificationSound($0) }
-                            )) {
-                                ForEach(NotificationSound.allCases, id: \.self) { sound in
-                                    Text(sound.displayName).tag(sound)
-                                }
-                            }
-                        } else {
-                            Button {
-                                showPaywall = true
-                            } label: {
-                                HStack {
-                                    Label {
-                                        Text("Custom Sounds")
-                                            .foregroundColor(.primary)
-                                    } icon: {
-                                        Image(systemName: "music.note")
-                                            .foregroundColor(.pink)
-                                    }
-                                    Spacer()
-                                    ProBadge()
-                                }
+                        // Custom notification sound
+                        Picker("Notification Sound", selection: Binding(
+                            get: { viewModel.settings.notificationSound },
+                            set: { viewModel.updateNotificationSound($0) }
+                        )) {
+                            ForEach(NotificationSound.allCases, id: \.self) { sound in
+                                Text(sound.displayName).tag(sound)
                             }
                         }
                         

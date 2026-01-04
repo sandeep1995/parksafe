@@ -150,7 +150,7 @@ struct ExportView: View {
                     .foregroundColor(.white)
                     .cornerRadius(12)
                 }
-                .disabled(isExporting || viewModel.sessions.isEmpty)
+                .disabled(isExporting || viewModel.allSessionsForExport.isEmpty)
             }
             .padding()
             .background(Theme.background)
@@ -208,7 +208,7 @@ struct ExportView: View {
         let timeFormatter = DateFormatter()
         timeFormatter.timeStyle = .short
         
-        for session in viewModel.sessions {
+        for session in viewModel.allSessionsForExport {
             let date = dateFormatter.string(from: session.startTime)
             let startTime = timeFormatter.string(from: session.startTime)
             let endTime = timeFormatter.string(from: session.endTime)
@@ -235,7 +235,7 @@ struct ExportView: View {
         encoder.dateEncodingStrategy = .iso8601
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         
-        let data = try encoder.encode(viewModel.sessions)
+        let data = try encoder.encode(viewModel.allSessionsForExport)
         
         let fileName = "ParkSafe_Export_\(formattedDate()).json"
         let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
