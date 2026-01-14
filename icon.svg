@@ -1,0 +1,61 @@
+              <svg 
+                viewBox="0 0 180 180" 
+                className="w-full h-full"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {/* Shield shadow */}
+                <path
+                  d="M90 32 L130 47 L130 87 Q130 122 90 147 Q50 122 50 87 L50 47 Z"
+                  fill="rgba(0, 0, 0, 0.15)"
+                />
+                
+                {/* Shield shape */}
+                <path
+                  d="M90 30 L130 45 L130 85 Q130 120 90 145 Q50 120 50 85 L50 45 Z"
+                  fill="rgba(255, 255, 255, 0.25)"
+                  stroke="rgba(255, 255, 255, 0.4)"
+                  strokeWidth="2.5"
+                />
+                
+                {/* P letter with shadow */}
+                <text
+                  x="90"
+                  y="107"
+                  fontSize="72"
+                  fontWeight="700"
+                  fill="rgba(0, 0, 0, 0.2)"
+                  textAnchor="middle"
+                  fontFamily="system-ui, -apple-system, sans-serif"
+                >
+                  P
+                </text>
+                <text
+                  x="90"
+                  y="105"
+                  fontSize="72"
+                  fontWeight="700"
+                  fill="white"
+                  textAnchor="middle"
+                  fontFamily="system-ui, -apple-system, sans-serif"
+                >
+                  P
+                </text>
+                
+                {/* Checkmark with shadow */}
+                <path
+                  d="M75 117 L82 124 L105 101"
+                  stroke="rgba(0, 0, 0, 0.2)"
+                  strokeWidth="6"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M75 115 L82 122 L105 99"
+                  stroke="white"
+                  strokeWidth="6"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>

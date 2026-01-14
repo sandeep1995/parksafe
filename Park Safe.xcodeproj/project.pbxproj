@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 90;
 	objects = {
 
 /* Begin PBXFileReference section */
@@ -21,10 +21,8 @@
 /* Begin PBXFrameworksBuildPhase section */
 		2CAFA3462F096E47000189B3 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
@@ -58,14 +56,10 @@
 			);
 			buildRules = (
 			);
-			dependencies = (
-			);
 			fileSystemSynchronizedGroups = (
 				2CAFA34B2F096E47000189B3 /* Park Safe */,
 			);
 			name = "Park Safe";
-			packageProductDependencies = (
-			);
 			productName = "Park Safe";
 			productReference = 2CAFA3492F096E47000189B3 /* Park Safe.app */;
 			productType = "com.apple.product-type.application";
@@ -94,7 +88,7 @@
 			);
 			mainGroup = 2CAFA3402F096E47000189B3;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
+			preferredProjectObjectVersion = 90;
 			productRefGroup = 2CAFA34A2F096E47000189B3 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -107,25 +101,21 @@
 /* Begin PBXResourcesBuildPhase section */
 		2CAFA3472F096E47000189B3 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		2CAFA3452F096E47000189B3 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		2CAFA3522F096E49000189B3 /* Debug */ = {
+		2CAFA3522F096E49000189B3 /* Debug configuration for PBXProject "Park Safe" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -189,7 +179,7 @@
 			};
 			name = Debug;
 		};
-		2CAFA3532F096E49000189B3 /* Release */ = {
+		2CAFA3532F096E49000189B3 /* Release configuration for PBXProject "Park Safe" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -246,11 +236,12 @@
 			};
 			name = Release;
 		};
-		2CAFA3552F096E49000189B3 /* Debug */ = {
+		2CAFA3552F096E49000189B3 /* Debug configuration for PBXNativeTarget "Park Safe" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = AD95USNR7V;
@@ -273,6 +264,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "sh.sandeep.Park-Safe";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -283,11 +275,12 @@
 			};
 			name = Debug;
 		};
-		2CAFA3562F096E49000189B3 /* Release */ = {
+		2CAFA3562F096E49000189B3 /* Release configuration for PBXNativeTarget "Park Safe" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = AD95USNR7V;
@@ -310,6 +303,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "sh.sandeep.Park-Safe";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -326,19 +320,17 @@
 		2CAFA3442F096E47000189B3 /* Build configuration list for PBXProject "Park Safe" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				2CAFA3522F096E49000189B3 /* Debug */,
-				2CAFA3532F096E49000189B3 /* Release */,
+				2CAFA3522F096E49000189B3 /* Debug configuration for PBXProject "Park Safe" */,
+				2CAFA3532F096E49000189B3 /* Release configuration for PBXProject "Park Safe" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		2CAFA3542F096E49000189B3 /* Build configuration list for PBXNativeTarget "Park Safe" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				2CAFA3552F096E49000189B3 /* Debug */,
-				2CAFA3562F096E49000189B3 /* Release */,
+				2CAFA3552F096E49000189B3 /* Debug configuration for PBXNativeTarget "Park Safe" */,
+				2CAFA3562F096E49000189B3 /* Release configuration for PBXNativeTarget "Park Safe" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
