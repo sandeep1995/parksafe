@@ -13,10 +13,8 @@ struct ContentView: View {
     @StateObject private var parkingViewModel: ParkingSessionViewModel
     @StateObject private var historyViewModel = HistoryViewModel()
     @StateObject private var settingsViewModel = SettingsViewModel()
-    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
     
     @State private var hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedPermissionOnboarding")
-    @State private var showPaywall = false
     
     init() {
         let locationMgr = LocationManager()
@@ -76,9 +74,6 @@ struct ContentView: View {
         .onAppear {
             // Refresh settings when settings change
             parkingViewModel.refreshSettings()
-            
-            // Check if trial has expired and show paywall if needed
-            checkTrialStatus()
         }
         .onChange(of: settingsViewModel.settings) { _, _ in
             parkingViewModel.refreshSettings()
@@ -88,22 +83,6 @@ struct ContentView: View {
             if case .idle = newState {
                 historyViewModel.loadSessions()
             }
-        }
-        .onChange(of: subscriptionManager.subscriptionStatus) { _, _ in
-            // Hide paywall if user subscribes
-            if subscriptionManager.subscriptionStatus == .subscribed {
-                showPaywall = false
-            }
-        }
-        .sheet(isPresented: $showPaywall) {
-            PaywallView()
-        }
-    }
-    
-    private func checkTrialStatus() {
-        // Show paywall if trial expired and user is not subscribed
-        if subscriptionManager.isTrialExpired && subscriptionManager.subscriptionStatus != .subscribed {
-            showPaywall = true
         }
     }
 }

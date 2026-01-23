@@ -247,6 +247,7 @@
 				DEVELOPMENT_TEAM = AD95USNR7V;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Park Safe - Never pay fines";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSCameraUsageDescription = "ParkSafe uses the camera to take photos of your parking spot so you can easily find your car.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "ParkSafe needs your location to remember where you parked your car and help you find it later.";
@@ -286,6 +287,7 @@
 				DEVELOPMENT_TEAM = AD95USNR7V;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Park Safe - Never pay fines";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSCameraUsageDescription = "ParkSafe uses the camera to take photos of your parking spot so you can easily find your car.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "ParkSafe needs your location to remember where you parked your car and help you find it later.";

@@ -58,7 +58,7 @@ struct ActiveParkingView: View {
                         }
                         .font(.footnote)
                         .fontWeight(.medium)
-                        .foregroundColor(.blue)
+                        .foregroundColor(Theme.accentColor)
                     }
                 }
                 .padding()

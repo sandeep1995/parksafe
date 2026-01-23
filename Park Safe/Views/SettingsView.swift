@@ -13,8 +13,6 @@ struct SettingsView: View {
     @ObservedObject var locationManager: LocationManager
     @ObservedObject var notificationManager: NotificationManager
     @ObservedObject var parkingViewModel: ParkingSessionViewModel
-    @ObservedObject var subscriptionManager = SubscriptionManager.shared
-    @State private var showPaywall = false
     
     var body: some View {
         NavigationView {
@@ -22,102 +20,6 @@ struct SettingsView: View {
                 Theme.background.ignoresSafeArea()
                 
                 Form {
-                    // Subscription section
-                    Section {
-                        if subscriptionManager.subscriptionStatus == .subscribed {
-                            HStack {
-                                Label {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        HStack {
-                                            Text("ParkSafe Pro")
-                                                .fontWeight(.semibold)
-                                            ProBadge()
-                                        }
-                                        Text("Active subscription")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
-                                } icon: {
-                                    Image(systemName: "crown.fill")
-                                        .foregroundColor(.orange)
-                                }
-                                Spacer()
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
-                            }
-                            
-                            Button("Manage Subscription") {
-                                if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
-                                    UIApplication.shared.open(url)
-                                }
-                            }
-                            .foregroundColor(.blue)
-                        } else {
-                            HStack {
-                                Label {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        if subscriptionManager.isTrialExpired {
-                                            Text("Trial Expired")
-                                                .fontWeight(.semibold)
-                                                .foregroundColor(.primary)
-                                            Text("Subscribe to continue using ParkSafe")
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        } else {
-                                            Text("Trial Active")
-                                                .fontWeight(.semibold)
-                                                .foregroundColor(.primary)
-                                            Text("\(subscriptionManager.trialDaysRemaining) days remaining")
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        }
-                                    }
-                                } icon: {
-                                    Image(systemName: subscriptionManager.isTrialExpired ? "clock.badge.exclamationmark" : "clock.fill")
-                                        .foregroundColor(.orange)
-                                }
-                                Spacer()
-                                if subscriptionManager.isTrialExpired {
-                                    Text("Subscribe")
-                                        .font(.subheadline)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(.orange)
-                                }
-                            }
-                            
-                            Button {
-                                showPaywall = true
-                            } label: {
-                                HStack {
-                                    Text(subscriptionManager.isTrialExpired ? "Subscribe Now" : "View Subscription")
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(.white)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(
-                                    LinearGradient(
-                                        colors: [.orange, .pink],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .cornerRadius(10)
-                            }
-                            
-                            Button("Restore Purchases") {
-                                Task {
-                                    await subscriptionManager.restorePurchases()
-                                }
-                            }
-                            .foregroundColor(.blue)
-                        }
-                    } header: {
-                        Text("Subscription")
-                    }
-                    .listRowBackground(Theme.cardBackground)
-                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                    
                     // Notifications section
                     Section {
                         Picker("Warning Time", selection: Binding(
@@ -137,7 +39,7 @@ struct SettingsView: View {
                                 Text("Sound")
                             } icon: {
                                 Image(systemName: "speaker.wave.2.fill")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(Theme.accentColor)
                             }
                         }
                         
@@ -177,7 +79,7 @@ struct SettingsView: View {
                                 Text("Location Access")
                             } icon: {
                                 Image(systemName: "location.fill")
-                                    .foregroundColor(.green)
+                                    .foregroundColor(Theme.accentColor)
                             }
                             Spacer()
                             statusBadge(for: locationManager.authorizationStatus)
@@ -188,7 +90,7 @@ struct SettingsView: View {
                             Button("Request Access") {
                                 locationManager.requestAuthorization()
                             }
-                            .foregroundColor(.blue)
+                            .foregroundColor(Theme.accentColor)
                         }
                     } header: {
                         Text("Location")
@@ -205,7 +107,7 @@ struct SettingsView: View {
                                 Text("Notification Access")
                             } icon: {
                                 Image(systemName: "bell.fill")
-                                    .foregroundColor(.red)
+                                    .foregroundColor(Theme.accentColor)
                             }
                             Spacer()
                             statusBadge(for: notificationManager.authorizationStatus)
@@ -217,7 +119,7 @@ struct SettingsView: View {
                                     await notificationManager.requestAuthorization()
                                 }
                             }
-                            .foregroundColor(.blue)
+                            .foregroundColor(Theme.accentColor)
                         }
                     } header: {
                         Text("Permissions")
@@ -251,9 +153,6 @@ struct SettingsView: View {
                 .environment(\.horizontalSizeClass, .compact)
             }
             .navigationTitle("Settings")
-            .sheet(isPresented: $showPaywall) {
-                PaywallView()
-            }
         }
     }
     
@@ -318,7 +217,7 @@ struct SettingsView: View {
         case .authorized: return .green
         case .denied: return .red
         case .notDetermined: return .orange
-        case .provisional, .ephemeral: return .blue
+        case .provisional, .ephemeral: return Theme.accentColor
         @unknown default: return .gray
         }
     }

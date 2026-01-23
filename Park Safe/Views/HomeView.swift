@@ -10,7 +10,6 @@ import PhotosUI
 
 struct HomeView: View {
     @ObservedObject var viewModel: ParkingSessionViewModel
-    @ObservedObject var subscriptionManager = SubscriptionManager.shared
     @State private var customHours = 0
     @State private var customMinutes = 15
     @State private var useCustomDuration = false
@@ -21,7 +20,6 @@ struct HomeView: View {
     @State private var showCamera = false
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var hourlyRateText = ""
-    @State private var showPaywall = false
     
     var body: some View {
         NavigationView {
@@ -41,9 +39,6 @@ struct HomeView: View {
             }
             .navigationTitle("ParkSafe")
             .navigationBarTitleDisplayMode(.large)
-            .sheet(isPresented: $showPaywall) {
-                PaywallView()
-            }
         }
     }
     
@@ -134,7 +129,7 @@ struct HomeView: View {
                 }) {
                     HStack {
                         Image(systemName: "plus.circle.fill")
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(Theme.accentColor)
                         Text("Add Details")
                             .fontWeight(.medium)
                         Text("(Optional)")
@@ -177,7 +172,7 @@ struct HomeView: View {
                         .fontWeight(.bold)
                 }
             }
-            .buttonStyle(ModernButtonStyle(backgroundColor: .blue))
+            .buttonStyle(ModernButtonStyle())
             .padding(.bottom)
         }
     }
@@ -352,12 +347,12 @@ struct PresetDurationButton: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 20)
-            .background(isSelected ? Color.blue : Color(.systemGray6))
+            .background(isSelected ? Theme.accentColor : Color(.systemGray6))
             .foregroundColor(isSelected ? .white : .primary)
             .cornerRadius(15)
             .overlay(
                 RoundedRectangle(cornerRadius: 15)
-                    .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? Theme.accentColor : Color.clear, lineWidth: 2)
             )
         }
     }

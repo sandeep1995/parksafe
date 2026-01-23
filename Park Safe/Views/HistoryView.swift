@@ -9,9 +9,7 @@ import SwiftUI
 
 struct HistoryView: View {
     @ObservedObject var viewModel: HistoryViewModel
-    @ObservedObject var subscriptionManager = SubscriptionManager.shared
     @State private var selectedSession: ParkingSession?
-    @State private var showPaywall = false
     @State private var showAnalytics = false
     @State private var showExport = false
     
@@ -139,9 +137,6 @@ struct HistoryView: View {
             .sheet(item: $selectedSession) { session in
                 ParkingSessionDetailView(session: session)
             }
-            .sheet(isPresented: $showPaywall) {
-                PaywallView()
-            }
             .sheet(isPresented: $showAnalytics) {
                 SpendingAnalyticsView(viewModel: viewModel)
             }
@@ -179,7 +174,7 @@ struct HistoryView: View {
             } label: {
                 HStack {
                     Image(systemName: "square.and.arrow.up.fill")
-                        .foregroundColor(.blue)
+                        .foregroundColor(Theme.accentColor)
                     Text("Export")
                         .font(.subheadline)
                         .fontWeight(.medium)
@@ -208,7 +203,7 @@ struct HistoryView: View {
                     value: "\(viewModel.totalSessions)",
                     label: "Sessions",
                     icon: "car.fill",
-                    color: .blue
+                    color: Theme.accentColor
                 )
                 
                 Divider()
@@ -218,7 +213,7 @@ struct HistoryView: View {
                     value: String(format: "%.1f", viewModel.totalHoursParked),
                     label: "Hours",
                     icon: "clock.fill",
-                    color: .purple
+                    color: Theme.accentColor
                 )
                 
                 Divider()
@@ -334,7 +329,7 @@ struct ParkingSessionRow: View {
                     .foregroundColor(.primary)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(Color.blue.opacity(0.1))
+                    .background(Theme.accentColor.opacity(0.1))
                     .cornerRadius(8)
                 
                 HStack(spacing: 4) {
@@ -346,7 +341,7 @@ struct ParkingSessionRow: View {
                     if session.location != nil {
                         Image(systemName: "location.fill")
                             .font(.caption)
-                            .foregroundColor(.blue)
+                            .foregroundColor(Theme.accentColor)
                     }
                 }
             }

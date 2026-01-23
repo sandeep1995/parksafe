@@ -49,13 +49,7 @@ struct ExportView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "square.and.arrow.up.circle.fill")
                         .font(.system(size: 60))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.blue, .purple],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
+                        .foregroundStyle(Theme.accentColor)
                     
                     Text("Export Your Data")
                         .font(.title2)
@@ -88,7 +82,7 @@ struct ExportView: View {
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(exportType == type ? Color.blue : Color(.systemGray6))
+                                .background(exportType == type ? Theme.accentColor : Color(.systemGray6))
                                 .foregroundColor(exportType == type ? .white : .primary)
                                 .cornerRadius(12)
                             }
@@ -105,7 +99,7 @@ struct ExportView: View {
                     
                     HStack {
                         Image(systemName: "doc.text.fill")
-                            .foregroundColor(.blue)
+                            .foregroundColor(Theme.accentColor)
                         Text("\(viewModel.totalSessions) parking sessions")
                         Spacer()
                     }
@@ -146,7 +140,7 @@ struct ExportView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
+                    .background(Theme.accentColor)
                     .foregroundColor(.white)
                     .cornerRadius(12)
                 }

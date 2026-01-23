@@ -8,8 +8,12 @@
 import SwiftUI
 
 struct Theme {
-    static let gradientStart = Color(red: 0.2, green: 0.5, blue: 1.0)
-    static let gradientEnd = Color(red: 0.4, green: 0.8, blue: 1.0)
+    // Custom accent color #ff3059
+    static let accentColor = Color(red: 1.0, green: 0.188, blue: 0.349)
+    
+    // Gradient using accent color
+    static let gradientStart = Color(red: 1.0, green: 0.188, blue: 0.349)
+    static let gradientEnd = Color(red: 1.0, green: 0.4, blue: 0.5)
     
     static let background = Color(uiColor: .systemGroupedBackground)
     static let cardBackground = Color(uiColor: .secondarySystemGroupedBackground)
@@ -44,7 +48,7 @@ struct GlassCard<Content: View>: View {
 }
 
 struct ModernButtonStyle: ButtonStyle {
-    var backgroundColor: Color = .blue
+    var backgroundColor: Color = Theme.accentColor
     
     func makeBody(configuration: Configuration) -> some View {
         configuration.label

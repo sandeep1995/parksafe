@@ -84,7 +84,7 @@ struct ParkingSessionDetailView: View {
                     
                     // Details
                     VStack(spacing: 16) {
-                        DetailRow(icon: "clock.fill", iconColor: .blue, title: "Duration", value: session.formattedDuration)
+                        DetailRow(icon: "clock.fill", iconColor: Theme.accentColor, title: "Duration", value: session.formattedDuration)
                         
                         DetailRow(icon: "calendar.fill", iconColor: .purple, title: "Date", value: session.formattedDate)
                         

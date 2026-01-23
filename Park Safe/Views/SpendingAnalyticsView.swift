@@ -68,7 +68,7 @@ struct SpendingAnalyticsView: View {
                     title: "Avg per Session",
                     value: formattedAveragePerSession,
                     icon: "chart.bar.fill",
-                    color: .blue
+                    color: Theme.accentColor
                 )
                 
                 SummaryCard(
@@ -102,13 +102,7 @@ struct SpendingAnalyticsView: View {
                     x: .value("Month", item.month),
                     y: .value("Amount", item.amount)
                 )
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.blue, .purple],
-                        startPoint: .bottom,
-                        endPoint: .top
-                    )
-                )
+                .foregroundStyle(Theme.accentColor)
                 .cornerRadius(6)
             }
             .frame(height: 200)

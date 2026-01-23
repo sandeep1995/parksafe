@@ -27,7 +27,7 @@ struct PermissionOnboardingView: View {
                     HStack(spacing: 8) {
                         ForEach(0..<pages.count, id: \.self) { index in
                             Circle()
-                                .fill(index == currentPage ? Color.blue : Color.gray.opacity(0.3))
+                                .fill(index == currentPage ? Theme.accentColor : Color.gray.opacity(0.3))
                                 .frame(width: 8, height: 8)
                                 .animation(.spring(response: 0.3), value: currentPage)
                         }
@@ -62,10 +62,10 @@ struct PermissionOnboardingView: View {
                             }
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.blue.gradient)
+                            .background(Theme.accentColor.gradient)
                             .foregroundColor(.white)
                             .cornerRadius(Theme.cornerRadius)
-                            .shadow(color: .blue.opacity(0.3), radius: 8, y: 4)
+                            .shadow(color: Theme.accentColor.opacity(0.3), radius: 8, y: 4)
                         }
                     } else {
                         Button(action: {
@@ -83,10 +83,10 @@ struct PermissionOnboardingView: View {
                             }
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(isRequestingPermissions ? Color.gray.gradient : Color.blue.gradient)
+                            .background(isRequestingPermissions ? Color.gray.gradient : Theme.accentColor.gradient)
                             .foregroundColor(.white)
                             .cornerRadius(Theme.cornerRadius)
-                            .shadow(color: .blue.opacity(0.3), radius: 8, y: 4)
+                            .shadow(color: Theme.accentColor.opacity(0.3), radius: 8, y: 4)
                         }
                         .disabled(isRequestingPermissions)
                     }
@@ -114,7 +114,7 @@ struct PermissionOnboardingView: View {
         [
             PermissionPage(
                 icon: "car.fill",
-                iconColor: .blue,
+                iconColor: Theme.accentColor,
                 title: "Welcome to ParkSafe",
                 description: "Never lose track of your parking spot again. ParkSafe helps you remember where you parked and alerts you before your time expires."
             ),
