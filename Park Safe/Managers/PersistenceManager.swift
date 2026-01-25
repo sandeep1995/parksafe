@@ -33,12 +33,14 @@ class PersistenceManager {
         var sessions = loadParkingSessions()
         sessions.insert(session, at: 0) // Add to beginning
         saveParkingSessions(sessions)
+        NotificationCenter.default.post(name: Constants.NotificationNames.parkingSessionsUpdated, object: nil)
     }
     
     func deleteParkingSession(_ session: ParkingSession) {
         var sessions = loadParkingSessions()
         sessions.removeAll { $0.id == session.id }
         saveParkingSessions(sessions)
+        NotificationCenter.default.post(name: Constants.NotificationNames.parkingSessionsUpdated, object: nil)
     }
     
     // MARK: - App Settings

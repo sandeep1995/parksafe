@@ -29,4 +29,9 @@ enum Constants {
         static let warning5Min = "parkingWarning5Min"
         static let expired = "parkingExpired"
     }
+    
+    enum NotificationNames {
+        static let parkingSessionAdded = NSNotification.Name("ParkingSessionAdded")
+        static let parkingSessionsUpdated = NSNotification.Name("ParkingSessionsUpdated")
+    }
 }

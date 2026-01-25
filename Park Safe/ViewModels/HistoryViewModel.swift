@@ -23,9 +23,25 @@ class HistoryViewModel: ObservableObject {
     private let persistenceManager = PersistenceManager.shared
     private let batchSize = 20 // Load 20 sessions at a time
     private var allSessions: [ParkingSession] = [] // All sessions from storage
+    private var cancellables = Set<AnyCancellable>()
     
     init() {
         loadInitialSessions()
+        setupNotificationObserver()
+    }
+    
+    private func setupNotificationObserver() {
+        NotificationCenter.default.publisher(for: Constants.NotificationNames.parkingSessionAdded)
+            .sink { [weak self] _ in
+                self?.loadSessions()
+            }
+            .store(in: &cancellables)
+        
+        NotificationCenter.default.publisher(for: Constants.NotificationNames.parkingSessionsUpdated)
+            .sink { [weak self] _ in
+                self?.loadSessions()
+            }
+            .store(in: &cancellables)
     }
     
     func loadSessions() {

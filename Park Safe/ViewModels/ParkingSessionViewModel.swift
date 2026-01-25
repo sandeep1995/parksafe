@@ -237,7 +237,7 @@ class ParkingSessionViewModel: ObservableObject {
     }
     
     func endParking() {
-        guard case .active(let startTime, _, let location) = state else { return }
+        guard case .active(let startTime, let scheduledEndTime, let location) = state else { return }
         
         // Stop timer
         timer?.cancel()
@@ -249,10 +249,14 @@ class ParkingSessionViewModel: ObservableObject {
         // Cancel notifications
         notificationManager.cancelAllNotifications()
         
+        // Use the scheduled end time if it's in the past, otherwise use current time
+        // This ensures we don't record more time than was scheduled
+        let actualEndTime = min(Date(), scheduledEndTime)
+        
         // Create and save session
         let session = ParkingSession(
             startTime: startTime,
-            endTime: Date(),
+            endTime: actualEndTime,
             location: location,
             photoFileName: photoFileName,
             hourlyRate: hourlyRate,
@@ -260,6 +264,9 @@ class ParkingSessionViewModel: ObservableObject {
             section: section.isEmpty ? nil : section
         )
         persistenceManager.addParkingSession(session)
+        
+        // Notify that a new session was added
+        NotificationCenter.default.post(name: Constants.NotificationNames.parkingSessionAdded, object: nil)
         
         // Clear stored active session
         UserDefaults.standard.removeObject(forKey: "activeParkingStartTime")
