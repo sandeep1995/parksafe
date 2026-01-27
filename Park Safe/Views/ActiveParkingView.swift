@@ -13,171 +13,207 @@ struct ActiveParkingView: View {
     @State private var showAddTimeMenu = false
     @State private var showMapView = false
     @State private var showPhotoFullScreen = false
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+    
+    private var isCompactHeight: Bool {
+        verticalSizeClass == .compact
+    }
+    
+    private var timerFontSize: CGFloat {
+        if isCompactHeight {
+            return 48
+        }
+        return horizontalSizeClass == .compact ? 56 : 72
+    }
+    
+    private var contentSpacing: CGFloat {
+        isCompactHeight ? 12 : 16
+    }
+    
+    private var buttonSpacing: CGFloat {
+        horizontalSizeClass == .compact ? 12 : 20
+    }
     
     var body: some View {
-        VStack(spacing: 24) {
-            // Timer Display
-            VStack(spacing: 16) {
-                // Time Display
-                Text(viewModel.remainingTime.formattedDuration())
-                    .font(.system(size: 64, weight: .bold, design: .rounded))
-                    .foregroundColor(viewModel.timeColor)
-                    .monospacedDigit()
-                    .contentTransition(.numericText(value: viewModel.remainingTime))
-                
-                Text("remaining")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .textCase(.uppercase)
-                    .tracking(1)
-            }
-            .padding(.vertical, 20)
-            .frame(maxWidth: .infinity)
-            .modernCard()
+        GeometryReader { geometry in
+            let isSmallScreen = geometry.size.width < 375
+            let dynamicSpacing = isSmallScreen ? 12.0 : 16.0
             
-            // Location
-            if let location = viewModel.parkingLocation {
-                VStack(spacing: 12) {
-                    HStack {
-                        Image(systemName: "mappin.circle.fill")
-                            .foregroundColor(.red)
-                        Text(location.address)
-                            .font(.subheadline)
-                            .foregroundColor(.primary)
-                            .lineLimit(2)
-                        Spacer()
+            VStack(spacing: dynamicSpacing) {
+                // Timer Display
+                VStack(spacing: 8) {
+                    // Time Display - uses ViewThatFits to auto-scale
+                    Text(viewModel.remainingTime.formattedDuration())
+                        .font(.system(size: timerFontSize, weight: .bold, design: .rounded))
+                        .foregroundColor(viewModel.timeColor)
+                        .monospacedDigit()
+                        .minimumScaleFactor(0.5)
+                        .lineLimit(1)
+                        .contentTransition(.numericText(value: viewModel.remainingTime))
+                    
+                    Text("remaining")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .textCase(.uppercase)
+                        .tracking(1)
+                }
+                .padding(.vertical, isSmallScreen ? 12 : 16)
+                .padding(.horizontal, 8)
+                .frame(maxWidth: .infinity)
+                .modernCard()
+                
+                // Location
+                if let location = viewModel.parkingLocation {
+                    VStack(spacing: 8) {
+                        HStack {
+                            Image(systemName: "mappin.circle.fill")
+                                .foregroundColor(.red)
+                            Text(location.address)
+                                .font(.subheadline)
+                                .foregroundColor(.primary)
+                                .lineLimit(2)
+                            Spacer()
+                        }
+                        
+                        Button(action: {
+                            showMapView = true
+                            hapticFeedback()
+                        }) {
+                            HStack {
+                                Image(systemName: "map.fill")
+                                Text("Show on Map")
+                            }
+                            .font(.footnote)
+                            .fontWeight(.medium)
+                            .foregroundColor(Theme.accentColor)
+                        }
+                    }
+                    .padding(isSmallScreen ? 10 : 12)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+                }
+                
+                // Optional Details (simplified)
+                if hasOptionalDetails {
+                    VStack(spacing: 8) {
+                        if let photo = viewModel.parkingPhoto {
+                            Button(action: {
+                                showPhotoFullScreen = true
+                            }) {
+                                Image(uiImage: photo)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(height: isSmallScreen ? 80 : 100)
+                                    .frame(maxWidth: .infinity)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                        }
+                        
+                        HStack(spacing: 8) {
+                            if !viewModel.floor.isEmpty {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "building.fill")
+                                        .font(.caption)
+                                        .foregroundColor(.purple)
+                                    Text(viewModel.floor)
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color(.systemGray6))
+                                .cornerRadius(8)
+                            }
+                            
+                            if !viewModel.section.isEmpty {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "square.grid.2x2.fill")
+                                        .font(.caption)
+                                        .foregroundColor(.orange)
+                                    Text(viewModel.section)
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color(.systemGray6))
+                                .cornerRadius(8)
+                            }
+                            
+                            if let cost = viewModel.formattedCurrentCost {
+                                Spacer()
+                                HStack(spacing: 4) {
+                                    Image(systemName: "dollarsign.circle.fill")
+                                        .font(.caption)
+                                        .foregroundColor(.green)
+                                    Text(cost)
+                                        .font(.caption)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.green)
+                                }
+                            }
+                        }
+                    }
+                    .padding(isSmallScreen ? 10 : 12)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+                }
+                
+                Spacer(minLength: 8)
+                
+                // Actions
+                HStack(spacing: buttonSpacing) {
+                    Menu {
+                        ForEach(Constants.addTimeOptions, id: \.self) { duration in
+                            Button(action: {
+                                viewModel.addTime(duration)
+                                hapticFeedback()
+                            }) {
+                                Label("+\(duration.displayName())", systemImage: "plus.circle")
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "plus.circle.fill")
+                            Text("Add Time")
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, isSmallScreen ? 12 : 14)
+                        .padding(.horizontal, 8)
+                        .background(Color.orange.gradient)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .fontWeight(.semibold)
                     }
                     
                     Button(action: {
-                        showMapView = true
+                        withAnimation {
+                            viewModel.endParking()
+                        }
                         hapticFeedback()
                     }) {
-                        HStack {
-                            Image(systemName: "map.fill")
-                            Text("Show on Map")
+                        HStack(spacing: 6) {
+                            Image(systemName: "stop.circle.fill")
+                            Text("End")
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                         }
-                        .font(.footnote)
-                        .fontWeight(.medium)
-                        .foregroundColor(Theme.accentColor)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, isSmallScreen ? 12 : 14)
+                        .padding(.horizontal, 8)
+                        .background(Color.red.gradient)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .fontWeight(.semibold)
                     }
-                }
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
-            }
-            
-            // Optional Details (simplified)
-            if hasOptionalDetails {
-                VStack(spacing: 12) {
-                    if let photo = viewModel.parkingPhoto {
-                        Button(action: {
-                            showPhotoFullScreen = true
-                        }) {
-                            Image(uiImage: photo)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(height: 100)
-                                .frame(maxWidth: .infinity)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                        }
-                    }
-                    
-                    HStack(spacing: 12) {
-                        if !viewModel.floor.isEmpty {
-                            HStack(spacing: 4) {
-                                Image(systemName: "building.fill")
-                                    .font(.caption)
-                                    .foregroundColor(.purple)
-                                Text(viewModel.floor)
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                            }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
-                        }
-                        
-                        if !viewModel.section.isEmpty {
-                            HStack(spacing: 4) {
-                                Image(systemName: "square.grid.2x2.fill")
-                                    .font(.caption)
-                                    .foregroundColor(.orange)
-                                Text(viewModel.section)
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                            }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
-                        }
-                        
-                        if let cost = viewModel.formattedCurrentCost {
-                            Spacer()
-                            HStack(spacing: 4) {
-                                Image(systemName: "dollarsign.circle.fill")
-                                    .font(.caption)
-                                    .foregroundColor(.green)
-                                Text(cost)
-                                    .font(.caption)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.green)
-                            }
-                        }
-                    }
-                }
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
-            }
-            
-            Spacer()
-            
-            // Actions
-            HStack(spacing: 15) {
-                Menu {
-                    ForEach(Constants.addTimeOptions, id: \.self) { duration in
-                        Button(action: {
-                            viewModel.addTime(duration)
-                            hapticFeedback()
-                        }) {
-                            Label("+\(duration.displayName())", systemImage: "plus.circle")
-                        }
-                    }
-                } label: {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                        Text("Add Time")
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.orange.gradient)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-                    .fontWeight(.semibold)
-                }
-                
-                Button(action: {
-                    withAnimation {
-                        viewModel.endParking()
-                    }
-                    hapticFeedback()
-                }) {
-                    HStack {
-                        Image(systemName: "stop.circle.fill")
-                        Text("End")
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.red.gradient)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-                    .fontWeight(.semibold)
                 }
             }
+            .padding(.horizontal, isSmallScreen ? 12 : 16)
+            .padding(.vertical, isSmallScreen ? 8 : 12)
         }
-        .padding()
         .sheet(isPresented: $showMapView) {
             if let location = viewModel.parkingLocation {
                 MapView(location: location)

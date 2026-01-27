@@ -26,19 +26,19 @@ struct HomeView: View {
             ZStack {
                 Theme.background.ignoresSafeArea()
                 
-                ScrollView {
-                    VStack(spacing: 25) {
-                        if case .idle = viewModel.state {
+                if case .idle = viewModel.state {
+                    ScrollView {
+                        VStack(spacing: 25) {
                             idleView
-                        } else {
-                            ActiveParkingView(viewModel: viewModel)
                         }
+                        .padding()
                     }
-                    .padding()
+                } else {
+                    ActiveParkingView(viewModel: viewModel)
                 }
             }
             .navigationTitle("ParkSafe")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
     
