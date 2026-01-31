@@ -56,11 +56,21 @@ class ParkingSessionViewModel: ObservableObject {
         locationManager.$currentAddress
             .assign(to: &$currentAddress)
         
-        // Check for active parking session on init
+        // Recover expired or active parking session on init
+        finalizeExpiredSessionIfNeeded()
         checkForActiveParking()
     }
     
+    func handleAppBecameActive() {
+        finalizeExpiredSessionIfNeeded()
+        checkForActiveParking()
+        if case .active = state {
+            startTimer()
+        }
+    }
+    
     private func checkForActiveParking() {
+        guard case .idle = state else { return }
         // Check if there's a stored active session
         if let storedEndTime = UserDefaults.standard.object(forKey: "activeParkingEndTime") as? Date,
            storedEndTime > Date() {
@@ -97,6 +107,50 @@ class ParkingSessionViewModel: ObservableObject {
                     startLiveActivity(startTime: storedStartTime, endTime: storedEndTime, location: location)
                 }
             }
+        }
+    }
+
+    private func finalizeExpiredSessionIfNeeded(currentDate: Date = Date()) {
+        guard let storedEndTime = UserDefaults.standard.object(forKey: "activeParkingEndTime") as? Date else { return }
+        guard storedEndTime <= currentDate else { return }
+        
+        if case .active = state {
+            endParking()
+            return
+        }
+        
+        let storedStartTime = UserDefaults.standard.object(forKey: "activeParkingStartTime") as? Date ?? storedEndTime
+        
+        var location: LocationData? = nil
+        if let lat = UserDefaults.standard.object(forKey: "activeParkingLat") as? Double,
+           let lon = UserDefaults.standard.object(forKey: "activeParkingLon") as? Double,
+           let address = UserDefaults.standard.object(forKey: "activeParkingAddress") as? String {
+            let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            location = LocationData(coordinate: coordinate, address: address)
+        }
+        
+        let storedHourlyRate = UserDefaults.standard.object(forKey: "activeParkingHourlyRate") as? Double
+        let storedFloor = UserDefaults.standard.string(forKey: "activeParkingFloor")
+        let storedSection = UserDefaults.standard.string(forKey: "activeParkingSection")
+        let storedPhotoFileName = UserDefaults.standard.string(forKey: "activeParkingPhotoFileName")
+        
+        let session = ParkingSession(
+            startTime: storedStartTime,
+            endTime: storedEndTime,
+            location: location,
+            photoFileName: storedPhotoFileName,
+            hourlyRate: storedHourlyRate,
+            floor: storedFloor?.isEmpty == false ? storedFloor : nil,
+            section: storedSection?.isEmpty == false ? storedSection : nil
+        )
+        persistenceManager.addParkingSession(session)
+        NotificationCenter.default.post(name: Constants.NotificationNames.parkingSessionAdded, object: nil)
+        
+        notificationManager.cancelAllNotifications()
+        clearActiveSessionStorage()
+        
+        if #available(iOS 16.1, *) {
+            endLiveActivity()
         }
     }
     
@@ -269,15 +323,7 @@ class ParkingSessionViewModel: ObservableObject {
         NotificationCenter.default.post(name: Constants.NotificationNames.parkingSessionAdded, object: nil)
         
         // Clear stored active session
-        UserDefaults.standard.removeObject(forKey: "activeParkingStartTime")
-        UserDefaults.standard.removeObject(forKey: "activeParkingEndTime")
-        UserDefaults.standard.removeObject(forKey: "activeParkingLat")
-        UserDefaults.standard.removeObject(forKey: "activeParkingLon")
-        UserDefaults.standard.removeObject(forKey: "activeParkingAddress")
-        UserDefaults.standard.removeObject(forKey: "activeParkingHourlyRate")
-        UserDefaults.standard.removeObject(forKey: "activeParkingFloor")
-        UserDefaults.standard.removeObject(forKey: "activeParkingSection")
-        UserDefaults.standard.removeObject(forKey: "activeParkingPhotoFileName")
+        clearActiveSessionStorage()
         
         // End Live Activity
         if #available(iOS 16.1, *) {
@@ -336,6 +382,18 @@ class ParkingSessionViewModel: ObservableObject {
                 }
             }
         }
+    }
+
+    private func clearActiveSessionStorage() {
+        UserDefaults.standard.removeObject(forKey: "activeParkingStartTime")
+        UserDefaults.standard.removeObject(forKey: "activeParkingEndTime")
+        UserDefaults.standard.removeObject(forKey: "activeParkingLat")
+        UserDefaults.standard.removeObject(forKey: "activeParkingLon")
+        UserDefaults.standard.removeObject(forKey: "activeParkingAddress")
+        UserDefaults.standard.removeObject(forKey: "activeParkingHourlyRate")
+        UserDefaults.standard.removeObject(forKey: "activeParkingFloor")
+        UserDefaults.standard.removeObject(forKey: "activeParkingSection")
+        UserDefaults.standard.removeObject(forKey: "activeParkingPhotoFileName")
     }
     
     var progress: Double {

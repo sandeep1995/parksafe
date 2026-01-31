@@ -13,6 +13,7 @@ struct ContentView: View {
     @StateObject private var parkingViewModel: ParkingSessionViewModel
     @StateObject private var historyViewModel = HistoryViewModel()
     @StateObject private var settingsViewModel = SettingsViewModel()
+    @Environment(\.scenePhase) private var scenePhase
     
     @State private var hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedPermissionOnboarding")
     
@@ -77,6 +78,11 @@ struct ContentView: View {
         }
         .onChange(of: settingsViewModel.settings) { _, _ in
             parkingViewModel.refreshSettings()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                parkingViewModel.handleAppBecameActive()
+            }
         }
         .onChange(of: parkingViewModel.state) { _, newState in
             // Reload history when parking session ends
